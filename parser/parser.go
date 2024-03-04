@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/Jamess-Lucass/interpreter-go/ast"
 	"github.com/Jamess-Lucass/interpreter-go/lexer"
 	"github.com/Jamess-Lucass/interpreter-go/token"
@@ -9,12 +11,18 @@ import (
 type Parser struct {
 	lexer *lexer.Lexer
 
+	errors []string
+
 	currentToken token.Token
 	peekToken    token.Token
 }
 
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
 func NewParser(lexer *lexer.Lexer) *Parser {
-	p := &Parser{lexer: lexer}
+	p := &Parser{lexer: lexer, errors: []string{}}
 
 	p.NextToken()
 	p.NextToken()
@@ -30,7 +38,7 @@ func (p *Parser) NextToken() {
 func (p *Parser) Parse() *ast.Program {
 	program := &ast.Program{Statements: []ast.Statement{}}
 
-	for p.currentToken.Type != token.EOF {
+	for !p.currentTokenIs(token.EOF) {
 		stmt := p.parseStatement()
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
@@ -54,13 +62,13 @@ func (p *Parser) parseStatement() ast.Statement {
 func (p *Parser) parseLetStatement() ast.Statement {
 	stmt := &ast.LetStatement{Token: p.currentToken}
 
-	if !p.expectedPeek(token.IDENT) {
+	if !p.expectPeek(token.IDENT) {
 		return nil
 	}
 
 	stmt.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 
-	if !p.expectedPeek(token.ASSIGN) {
+	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
 
@@ -79,11 +87,19 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
-func (p *Parser) expectedPeek(t token.TokenType) bool {
+func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.NextToken()
 		return true
 	}
 
+	p.peekError(t)
+
 	return false
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+
+	p.errors = append(p.errors, msg)
 }

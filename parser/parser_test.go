@@ -19,6 +19,7 @@ let foobar = 838383;`
 
 	program := p.Parse()
 
+	assert.Len(t, p.errors, 0)
 	assert.NotNil(t, program)
 	assert.Len(t, program.Statements, 3)
 
