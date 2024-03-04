@@ -42,3 +42,26 @@ let foobar = 838383;`
 		assert.Equal(t, test.expectedIdentifier, letStatement.Name.TokenLiteral())
 	}
 }
+
+func Test_ParsingReturnStatements(t *testing.T) {
+	input := `
+return 5;
+return 10;
+return 838383;`
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.Parse()
+
+	assert.Len(t, p.errors, 0)
+	assert.NotNil(t, program)
+	assert.Len(t, program.Statements, 3)
+
+	for _, statement := range program.Statements {
+		returnStatement, ok := statement.(*ast.ReturnStatement)
+		assert.True(t, ok)
+
+		assert.Equal(t, "return", returnStatement.TokenLiteral())
+	}
+}
