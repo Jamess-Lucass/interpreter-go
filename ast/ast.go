@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/Jamess-Lucass/interpreter-go/token"
 )
@@ -275,6 +276,67 @@ func (s *IfExpression) String() string {
 		out.WriteString("else ")
 		out.WriteString(s.Alternative.String())
 	}
+
+	return out.String()
+}
+
+type FunctionLiteral struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+var _ Expression = (*FunctionLiteral)(nil)
+
+func (s *FunctionLiteral) expressionNode() {}
+
+func (s *FunctionLiteral) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range s.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString(s.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(")")
+	out.WriteString(s.Body.String())
+
+	return out.String()
+}
+
+type CallExpression struct {
+	Token     token.Token
+	Function  Expression
+	Arguments []Expression
+}
+
+var _ Expression = (*CallExpression)(nil)
+
+func (s *CallExpression) expressionNode() {}
+
+func (s *CallExpression) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *CallExpression) String() string {
+	var out bytes.Buffer
+
+	arguments := []string{}
+	for _, a := range s.Arguments {
+		arguments = append(arguments, a.String())
+	}
+
+	out.WriteString(s.Function.String())
+	out.WriteString("(")
+	out.WriteString(strings.Join(arguments, ", "))
+	out.WriteString(")")
 
 	return out.String()
 }
