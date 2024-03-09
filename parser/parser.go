@@ -63,6 +63,10 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+	p.registerPrefix(token.TRUE, p.parseBoolean)
+	p.registerPrefix(token.FALSE, p.parseBoolean)
+	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
+	p.registerPrefix(token.IF, p.parseIfExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -181,6 +185,10 @@ func (p *Parser) parseIdentifer() ast.Expression {
 	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
+func (p *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{Token: p.currentToken, Value: p.currentTokenIs(token.TRUE)}
+}
+
 func (p *Parser) parseIntegerLiteral() ast.Expression {
 	literal := &ast.IntegerLiteral{Token: p.currentToken}
 
@@ -221,6 +229,42 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.NextToken()
+
+	expression := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return expression
+
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+	expression := ast.IfExpression{Token: p.currentToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.NextToken()
+	expression.Condition = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	expression.Condition = p.parseBlockStatement()
+
+	return &expression
 }
 
 func (p *Parser) currentTokenIs(t token.TokenType) bool {

@@ -208,3 +208,73 @@ func (s *InfixExpression) String() string {
 
 	return out.String()
 }
+
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+var _ Expression = (*Boolean)(nil)
+
+func (s *Boolean) expressionNode() {}
+
+func (s *Boolean) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *Boolean) String() string {
+	return s.Token.Literal
+}
+
+type BlockStatement struct {
+	Token      token.Token // the '{' token
+	Statements []Statement
+}
+
+var _ Statement = (*BlockStatement)(nil)
+
+func (s *BlockStatement) statementNode() {}
+
+func (s *BlockStatement) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *BlockStatement) String() string {
+	var out bytes.Buffer
+
+	for _, stmt := range s.Statements {
+		out.WriteString(stmt.String())
+	}
+
+	return out.String()
+}
+
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+var _ Expression = (*IfExpression)(nil)
+
+func (s *IfExpression) expressionNode() {}
+
+func (s *IfExpression) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if")
+	out.WriteString(s.Condition.String())
+	out.WriteString(" ")
+
+	if s.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(s.Alternative.String())
+	}
+
+	return out.String()
+}
