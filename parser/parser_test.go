@@ -74,7 +74,7 @@ func Test_ParsingLetStatements(t *testing.T) {
 		expectedIdentifier string
 		expectedValue      interface{}
 	}{
-		{"let x = 5;", "x", 5},
+		{"let x = 5", "x", 5},
 		{"let y = true;", "y", true},
 		{"let foobar = y;", "foobar", "y"},
 	}
@@ -104,7 +104,7 @@ func Test_ParsingReturnStatements(t *testing.T) {
 	}{
 		{"return 5;", 5},
 		{"return true;", true},
-		{"return y;", "y"},
+		{"return y", "y"},
 	}
 
 	for _, test := range tests {
@@ -123,27 +123,6 @@ func Test_ParsingReturnStatements(t *testing.T) {
 
 		testliteralExpression(t, returnStatement.Value, test.expectedValue)
 	}
-
-	// 	input := `
-	// return 5;
-	// return 10;
-	// return 838383;`
-
-	// 	l := lexer.NewLexer(input)
-	// 	p := NewParser(l)
-
-	// 	program := p.Parse()
-
-	// 	assert.Len(t, p.errors, 0)
-	// 	assert.NotNil(t, program)
-	// 	assert.Len(t, program.Statements, 3)
-
-	// 	for _, statement := range program.Statements {
-	// 		returnStatement, ok := statement.(*ast.ReturnStatement)
-	// 		assert.True(t, ok)
-
-	//		assert.Equal(t, "return", returnStatement.TokenLiteral())
-	//	}
 }
 
 func Test_IdentifierExpression(t *testing.T) {
