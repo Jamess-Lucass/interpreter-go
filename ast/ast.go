@@ -54,11 +54,9 @@ type Identifier struct {
 var _ Expression = (*Identifier)(nil)
 
 func (i *Identifier) expressionNode() {}
-
 func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
-
 func (i *Identifier) String() string {
 	return i.Value
 }
@@ -72,11 +70,9 @@ type LetStatement struct {
 var _ Statement = (*LetStatement)(nil)
 
 func (s *LetStatement) statementNode() {}
-
 func (s *LetStatement) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *LetStatement) String() string {
 	var out bytes.Buffer
 
@@ -101,11 +97,9 @@ type ReturnStatement struct {
 var _ Statement = (*ReturnStatement)(nil)
 
 func (s *ReturnStatement) statementNode() {}
-
 func (s *ReturnStatement) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *ReturnStatement) String() string {
 	var out bytes.Buffer
 
@@ -128,11 +122,9 @@ type ExpressionStatement struct {
 var _ Statement = (*ExpressionStatement)(nil)
 
 func (s *ExpressionStatement) statementNode() {}
-
 func (s *ExpressionStatement) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *ExpressionStatement) String() string {
 	if s.Expression != nil {
 		return s.Expression.String()
@@ -149,11 +141,9 @@ type IntegerLiteral struct {
 var _ Expression = (*IntegerLiteral)(nil)
 
 func (s *IntegerLiteral) expressionNode() {}
-
 func (s *IntegerLiteral) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *IntegerLiteral) String() string {
 	return s.Token.Literal
 }
@@ -167,11 +157,9 @@ type PrefixExpression struct {
 var _ Expression = (*PrefixExpression)(nil)
 
 func (s *PrefixExpression) expressionNode() {}
-
 func (s *PrefixExpression) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *PrefixExpression) String() string {
 	var out bytes.Buffer
 
@@ -193,11 +181,9 @@ type InfixExpression struct {
 var _ Expression = (*InfixExpression)(nil)
 
 func (s *InfixExpression) expressionNode() {}
-
 func (s *InfixExpression) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *InfixExpression) String() string {
 	var out bytes.Buffer
 
@@ -218,11 +204,9 @@ type Boolean struct {
 var _ Expression = (*Boolean)(nil)
 
 func (s *Boolean) expressionNode() {}
-
 func (s *Boolean) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *Boolean) String() string {
 	return s.Token.Literal
 }
@@ -235,11 +219,9 @@ type BlockStatement struct {
 var _ Statement = (*BlockStatement)(nil)
 
 func (s *BlockStatement) statementNode() {}
-
 func (s *BlockStatement) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *BlockStatement) String() string {
 	var out bytes.Buffer
 
@@ -260,11 +242,9 @@ type IfExpression struct {
 var _ Expression = (*IfExpression)(nil)
 
 func (s *IfExpression) expressionNode() {}
-
 func (s *IfExpression) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *IfExpression) String() string {
 	var out bytes.Buffer
 
@@ -289,11 +269,9 @@ type FunctionLiteral struct {
 var _ Expression = (*FunctionLiteral)(nil)
 
 func (s *FunctionLiteral) expressionNode() {}
-
 func (s *FunctionLiteral) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *FunctionLiteral) String() string {
 	var out bytes.Buffer
 
@@ -320,11 +298,9 @@ type CallExpression struct {
 var _ Expression = (*CallExpression)(nil)
 
 func (s *CallExpression) expressionNode() {}
-
 func (s *CallExpression) TokenLiteral() string {
 	return s.Token.Literal
 }
-
 func (s *CallExpression) String() string {
 	var out bytes.Buffer
 

@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Jamess-Lucass/interpreter-go/lexer"
@@ -68,7 +69,7 @@ func Test_EvalBooleanExpression(t *testing.T) {
 		result, ok := evaluated.(*object.Boolean)
 		assert.True(t, ok)
 
-		assert.Equal(t, test.expected, result.Value)
+		assert.Equal(t, test.expected, result.Value, fmt.Sprintf("for input: %v", test.input))
 	}
 }
 
@@ -119,6 +120,64 @@ func Test_BangOperator(t *testing.T) {
 	for _, test := range tests {
 		evaluated := testEval(test.input)
 		result, ok := evaluated.(*object.Boolean)
+		assert.True(t, ok)
+
+		assert.Equal(t, test.expected, result.Value)
+	}
+}
+
+func Test_IfElseExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+
+		integer, ok := test.expected.(int)
+		if ok {
+			result, ok := evaluated.(*object.Integer)
+			assert.True(t, ok)
+
+			assert.Equal(t, int64(integer), result.Value)
+		} else {
+			assert.Equal(t, NULL, evaluated)
+		}
+	}
+}
+func Test_ReturnStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"return 10;", 10},
+		{"return 10; 9;", 10},
+		{"return 2 * 5; 9;", 10},
+		{"9; return 2 * 5; 9;", 10},
+		{`
+			if (10 > 1) {
+				if (10 > 1) {
+					return 10;
+				}
+				return 1;
+			}
+		`,
+			10,
+		},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		result, ok := evaluated.(*object.Integer)
 		assert.True(t, ok)
 
 		assert.Equal(t, test.expected, result.Value)

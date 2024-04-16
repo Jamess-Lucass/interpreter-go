@@ -60,7 +60,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.NextToken()
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
-	p.registerPrefix(token.IDENT, p.parseIdentifer)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
@@ -90,7 +90,8 @@ func (p *Parser) NextToken() {
 }
 
 func (p *Parser) Parse() *ast.Program {
-	program := &ast.Program{Statements: []ast.Statement{}}
+	program := &ast.Program{}
+	program.Statements = []ast.Statement{}
 
 	for !p.currentTokenIs(token.EOF) {
 		stmt := p.parseStatement()
@@ -115,7 +116,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	}
 }
 
-func (p *Parser) parseLetStatement() ast.Statement {
+func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt := &ast.LetStatement{Token: p.currentToken}
 
 	if !p.expectPeek(token.IDENT) {
@@ -139,7 +140,7 @@ func (p *Parser) parseLetStatement() ast.Statement {
 	return stmt
 }
 
-func (p *Parser) parseReturnStatement() ast.Statement {
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.currentToken}
 
 	p.NextToken()
@@ -153,11 +154,9 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 	return stmt
 }
 
-func (p *Parser) parseExpressionStatement() ast.Statement {
-	stmt := &ast.ExpressionStatement{
-		Token:      p.currentToken,
-		Expression: p.parseExpression(LOWEST),
-	}
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.currentToken}
+	stmt.Expression = p.parseExpression(LOWEST)
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.NextToken()
@@ -190,7 +189,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	return leftExpression
 }
 
-func (p *Parser) parseIdentifer() ast.Expression {
+func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
@@ -365,7 +364,8 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 }
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
-	statement := &ast.BlockStatement{Token: p.currentToken, Statements: []ast.Statement{}}
+	statement := &ast.BlockStatement{Token: p.currentToken}
+	statement.Statements = []ast.Statement{}
 
 	p.NextToken()
 
