@@ -1,12 +1,20 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"strings"
+
+	"github.com/Jamess-Lucass/interpreter-go/ast"
+)
 
 const (
 	INTEGER_OBJ      = "INTEGER"
 	BOOLEAN_OBJ      = "BOOLEAN"
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
+	ERROR_OBJ        = "ERROR"
+	FUNCTION_OBJ     = "FUNCTION"
 )
 
 type ObjectType string
@@ -64,4 +72,78 @@ func (n *ReturnValue) Type() ObjectType {
 }
 func (n *ReturnValue) Inspect() string {
 	return n.Value.Inspect()
+}
+
+type Error struct {
+	Message string
+}
+
+var _ Object = (*Error)(nil)
+
+func (e *Error) Type() ObjectType {
+	return ERROR_OBJ
+}
+func (e *Error) Inspect() string {
+	return fmt.Sprintf("ERROR: %s", e.Message)
+}
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+var _ Object = (*Function)(nil)
+
+func (f *Function) Type() ObjectType {
+	return FUNCTION_OBJ
+}
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString("fn")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n})")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
+
+func NewEnvironment() *Environment {
+	s := make(map[string]Object)
+
+	return &Environment{store: s, outer: nil}
+}
+
+type Environment struct {
+	store map[string]Object
+	outer *Environment
+}
+
+func (e *Environment) Get(name string) (Object, bool) {
+	obj, ok := e.store[name]
+	if !ok && e.outer != nil {
+		obj, ok = e.outer.Get(name)
+	}
+
+	return obj, ok
+}
+
+func (e *Environment) Set(name string, value Object) Object {
+	e.store[name] = value
+	return value
+}
+
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+	env := NewEnvironment()
+	env.outer = outer
+
+	return env
 }
