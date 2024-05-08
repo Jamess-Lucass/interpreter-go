@@ -4,8 +4,9 @@ const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 
-	IDENT = "IDENT"
-	INT   = "INT"
+	IDENT  = "IDENT"
+	INT    = "INT"
+	STRING = "STRING"
 
 	ASSIGN = "="
 
@@ -16,7 +17,7 @@ const (
 	LT       = "<"
 	GT       = ">"
 
-	BANG = "!"
+	BANG      = "!"
 	COMMA     = ","
 	SEMICOLON = ";"
 
@@ -25,7 +26,7 @@ const (
 	LBRACE = "{"
 	RBRACE = "}"
 
-	EQ = "=="
+	EQ     = "=="
 	NOT_EQ = "!="
 
 	// keywords

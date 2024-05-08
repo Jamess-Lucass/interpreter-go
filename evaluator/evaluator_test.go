@@ -230,6 +230,10 @@ func Test_ErrorHandling(t *testing.T) {
 			"foobar",
 			"identifier not found: foobar",
 		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
+		},
 	}
 
 	for _, test := range tests {
@@ -309,4 +313,22 @@ func Test_Closures(t *testing.T) {
 	assert.True(t, ok)
 
 	assert.Equal(t, int64(4), result.Value)
+}
+
+func Test_EvalStringExpression(t *testing.T) {
+	input := `"Hello World!"`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.String)
+	assert.True(t, ok)
+	assert.Equal(t, "Hello World!", result.Value)
+}
+
+func Test_EvalStringConcatentation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.String)
+	assert.True(t, ok)
+	assert.Equal(t, "Hello World!", result.Value)
 }
