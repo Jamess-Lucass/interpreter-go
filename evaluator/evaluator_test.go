@@ -332,3 +332,31 @@ func Test_EvalStringConcatentation(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, "Hello World!", result.Value)
 }
+
+func Test_BuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{`len(1)`, "argument to `len` not supported, got INTEGER"},
+		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+
+		switch expected := test.expected.(type) {
+		case int:
+			result, ok := evaluated.(*object.Integer)
+			assert.True(t, ok)
+			assert.Equal(t, int64(expected), result.Value)
+		case string:
+			errorObj, ok := evaluated.(*object.Error)
+			assert.True(t, ok)
+			assert.Equal(t, expected, errorObj.Message)
+		}
+	}
+}
