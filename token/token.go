@@ -17,6 +17,9 @@ const (
 	LT       = "<"
 	GT       = ">"
 
+	LBRACKET = "["
+	RBRACKET = "]"
+
 	BANG      = "!"
 	COMMA     = ","
 	SEMICOLON = ";"

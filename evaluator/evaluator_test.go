@@ -19,6 +19,13 @@ func testEval(input string) object.Object {
 	return Eval(program, env)
 }
 
+func testIntegerObject(t *testing.T, obj object.Object, expected int64) {
+	result, ok := obj.(*object.Integer)
+	assert.True(t, ok)
+
+	assert.Equal(t, expected, result.Value)
+}
+
 func Test_EvalIntgerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -32,10 +39,7 @@ func Test_EvalIntgerExpression(t *testing.T) {
 
 	for _, test := range tests {
 		evaluated := testEval(test.input)
-		result, ok := evaluated.(*object.Integer)
-		assert.True(t, ok)
-
-		assert.Equal(t, test.expected, result.Value)
+		testIntegerObject(t, evaluated, test.expected)
 	}
 }
 
@@ -98,10 +102,7 @@ func Test_EvalIntegerOperator(t *testing.T) {
 
 	for _, test := range tests {
 		evaluated := testEval(test.input)
-		result, ok := evaluated.(*object.Integer)
-		assert.True(t, ok)
-
-		assert.Equal(t, test.expected, result.Value)
+		testIntegerObject(t, evaluated, test.expected)
 	}
 }
 
@@ -146,10 +147,7 @@ func Test_IfElseExpression(t *testing.T) {
 
 		integer, ok := test.expected.(int)
 		if ok {
-			result, ok := evaluated.(*object.Integer)
-			assert.True(t, ok)
-
-			assert.Equal(t, int64(integer), result.Value)
+			testIntegerObject(t, evaluated, int64(integer))
 		} else {
 			assert.Equal(t, NULL, evaluated)
 		}
@@ -178,10 +176,7 @@ func Test_ReturnStatements(t *testing.T) {
 
 	for _, test := range tests {
 		evaluated := testEval(test.input)
-		result, ok := evaluated.(*object.Integer)
-		assert.True(t, ok)
-
-		assert.Equal(t, test.expected, result.Value)
+		testIntegerObject(t, evaluated, test.expected)
 	}
 }
 
@@ -258,10 +253,7 @@ func Test_LetStatements(t *testing.T) {
 
 	for _, test := range tests {
 		evaluated := testEval(test.input)
-		result, ok := evaluated.(*object.Integer)
-		assert.True(t, ok)
-
-		assert.Equal(t, test.expected, result.Value)
+		testIntegerObject(t, evaluated, test.expected)
 	}
 }
 
@@ -292,10 +284,7 @@ func Test_FunctionApplication(t *testing.T) {
 
 	for _, test := range tests {
 		evaluated := testEval(test.input)
-		result, ok := evaluated.(*object.Integer)
-		assert.True(t, ok)
-
-		assert.Equal(t, test.expected, result.Value)
+		testIntegerObject(t, evaluated, test.expected)
 	}
 }
 
@@ -309,10 +298,7 @@ func Test_Closures(t *testing.T) {
 	addTwo(2);`
 
 	evaluated := testEval(input)
-	result, ok := evaluated.(*object.Integer)
-	assert.True(t, ok)
-
-	assert.Equal(t, int64(4), result.Value)
+	testIntegerObject(t, evaluated, 4)
 }
 
 func Test_EvalStringExpression(t *testing.T) {
@@ -350,13 +336,83 @@ func Test_BuiltinFunctions(t *testing.T) {
 
 		switch expected := test.expected.(type) {
 		case int:
-			result, ok := evaluated.(*object.Integer)
-			assert.True(t, ok)
-			assert.Equal(t, int64(expected), result.Value)
+			testIntegerObject(t, evaluated, int64(expected))
 		case string:
 			errorObj, ok := evaluated.(*object.Error)
 			assert.True(t, ok)
 			assert.Equal(t, expected, errorObj.Message)
+		}
+	}
+}
+
+func Test_ArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Array)
+	assert.True(t, ok)
+	assert.Equal(t, 3, len(result.Elements))
+
+	testIntegerObject(t, result.Elements[0], 1)
+	testIntegerObject(t, result.Elements[1], 4)
+	testIntegerObject(t, result.Elements[2], 6)
+}
+
+func Test_ArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1, 2, 3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"let i = 0; [1][i];",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1];",
+			3,
+		},
+		{
+			"let myArray = [1, 2, 3]; myArray[2];",
+			3,
+		},
+		{
+			"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			6,
+		},
+		{
+			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			nil,
+		},
+		{
+			"[1, 2, 3][-1]",
+			nil,
+		},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+
+		integer, ok := test.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			assert.Equal(t, NULL, evaluated)
 		}
 	}
 }
