@@ -229,6 +229,10 @@ func Test_ErrorHandling(t *testing.T) {
 			`"Hello" - "World"`,
 			"unknown operator: STRING - STRING",
 		},
+		{
+			`{"name": "John"}[fn(x) { x }];`,
+			"unusable as hash key: FUNCTION",
+		},
 	}
 
 	for _, test := range tests {
@@ -408,6 +412,62 @@ func Test_ArrayIndexExpressions(t *testing.T) {
 	for _, test := range tests {
 		evaluated := testEval(test.input)
 
+		integer, ok := test.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			assert.Equal(t, NULL, evaluated)
+		}
+	}
+}
+
+func Test_HashLiterals(t *testing.T) {
+	input := `let two = "two";
+	{
+		"one": 10 -9,
+		two: 1 + 1,
+		"thr" + "ee": 6 / 2,
+		4: 4,
+		true: 5,
+		false: 6
+	}`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Hash)
+	assert.True(t, ok)
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
+	}
+
+	assert.Len(t, result.Pairs, len(expected))
+
+	for key, value := range expected {
+		pair, ok := result.Pairs[key]
+		assert.True(t, ok)
+
+		testIntegerObject(t, pair.Value, value)
+	}
+}
+
+func Test_HashIndexExpression(t* testing.T) {
+	tests := []struct{
+		input string
+		expected interface{}
+	}{
+		{
+			`{"foo": 5}["foo"]`,
+			5,
+		},
+	}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
 		integer, ok := test.expected.(int)
 		if ok {
 			testIntegerObject(t, evaluated, int64(integer))

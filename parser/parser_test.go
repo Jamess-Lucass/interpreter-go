@@ -17,6 +17,14 @@ func testIntegerLiteral(t *testing.T, expression ast.Expression, value int64) {
 	assert.Equal(t, fmt.Sprintf("%d", value), literal.TokenLiteral())
 }
 
+func testStringLiteral(t *testing.T, expression ast.Expression, value string) {
+	literal, ok := expression.(*ast.StringLiteral)
+	assert.True(t, ok)
+
+	assert.Equal(t, value, literal.Value)
+	assert.Equal(t, value, literal.TokenLiteral())
+}
+
 func testIdentifier(t *testing.T, expression ast.Expression, value string) {
 	identifier, ok := expression.(*ast.Identifier)
 	assert.True(t, ok)
@@ -575,9 +583,7 @@ func Test_StringLiteralExpression(t *testing.T) {
 	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
 
-	literal, ok := statement.Expression.(*ast.StringLiteral)
-	assert.True(t, ok)
-	assert.Equal(t, "hello world", literal.Value)
+	testStringLiteral(t, statement.Expression, "hello world")
 }
 
 func Test_ParsingArrayLiterals(t *testing.T) {
@@ -597,7 +603,7 @@ func Test_ParsingArrayLiterals(t *testing.T) {
 
 	literal, ok := statement.Expression.(*ast.ArrayLiteral)
 	assert.True(t, ok)
-	assert.Equal(t, 3, len(literal.Elements))
+	assert.Len(t, literal.Elements, 3)
 
 	testIntegerLiteral(t, literal.Elements[0], 1)
 	testInfixExpression(t, literal.Elements[1], 2, "*", 2)
@@ -624,4 +630,164 @@ func Test_ParsingIndexExpressions(t *testing.T) {
 
 	testIdentifier(t, literal.Left, "myArray")
 	testInfixExpression(t, literal.Index, 1, "+", 1)
+}
+
+func Test_ParsingHashLiteralStringKey(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.Parse()
+
+	assert.Len(t, p.errors, 0)
+	assert.NotNil(t, program)
+	assert.Len(t, program.Statements, 1)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLiteral, ok := statement.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+	assert.Len(t, hashLiteral.Pairs, 3)
+
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	for key, value := range hashLiteral.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		assert.True(t, ok)
+
+		testIntegerLiteral(t, value, expected[literal.String()])
+	}
+}
+
+func Test_ParsingHashLiteralIntegerKey(t *testing.T) {
+	input := `{1: "one", 2: "two", 3: "three"}`
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.Parse()
+
+	assert.Len(t, p.errors, 0)
+	assert.NotNil(t, program)
+	assert.Len(t, program.Statements, 1)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLiteral, ok := statement.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+	assert.Len(t, hashLiteral.Pairs, 3)
+
+	expected := map[int64]string{
+		1: "one",
+		2: "two",
+		3: "three",
+	}
+
+	for key, value := range hashLiteral.Pairs {
+		literal, ok := key.(*ast.IntegerLiteral)
+		assert.True(t, ok)
+
+		testStringLiteral(t, value, expected[literal.Value])
+	}
+}
+
+func Test_ParsingHashLiteralBooleanKey(t *testing.T) {
+	input := `{true: "one", false: "two"}`
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.Parse()
+
+	assert.Len(t, p.errors, 0)
+	assert.NotNil(t, program)
+	assert.Len(t, program.Statements, 1)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLiteral, ok := statement.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+	assert.Len(t, hashLiteral.Pairs, 2)
+
+	expected := map[bool]string{
+		true:  "one",
+		false: "two",
+	}
+
+	for key, value := range hashLiteral.Pairs {
+		literal, ok := key.(*ast.Boolean)
+		assert.True(t, ok)
+
+		testStringLiteral(t, value, expected[literal.Value])
+	}
+}
+
+func Test_ParsingEmptyHashLiteral(t *testing.T) {
+	input := "{}"
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.Parse()
+
+	assert.Len(t, p.errors, 0)
+	assert.NotNil(t, program)
+	assert.Len(t, program.Statements, 1)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLiteral, ok := statement.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+	assert.Len(t, hashLiteral.Pairs, 0)
+}
+
+func Test_ParsingHashLiteralWithExpressions(t *testing.T) {
+	input := `{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}`
+
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.Parse()
+
+	assert.Len(t, p.errors, 0)
+	assert.NotNil(t, program)
+	assert.Len(t, program.Statements, 1)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLiteral, ok := statement.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+	assert.Len(t, hashLiteral.Pairs, 3)
+
+	expected := map[string]func(ast.Expression){
+		"one": func(e ast.Expression) {
+			testInfixExpression(t, e, 0, "+", 1)
+		},
+		"two": func(e ast.Expression) {
+			testInfixExpression(t, e, 10, "-", 8)
+		},
+		"three": func(e ast.Expression) {
+			testInfixExpression(t, e, 15, "/", 5)
+		},
+	}
+
+	for key, value := range hashLiteral.Pairs {
+		literal, ok := key.(*ast.StringLiteral)
+		assert.True(t, ok)
+
+		expectedFunc, ok := expected[literal.String()]
+		assert.True(t, ok)
+
+		expectedFunc(value)
+	}
 }
